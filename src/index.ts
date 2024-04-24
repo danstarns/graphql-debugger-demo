@@ -1,44 +1,25 @@
 import { GraphQLDebuggerContext } from "@graphql-debugger/trace-schema";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { graphql } from "graphql";
-
-const typeDefs = /* GraphQL */ `
-  type User {
-    id: ID!
-    username: String!
-    email: String!
-  }
-
-  type Post {
-    id: ID!
-    title: String!
-    content: String!
-    userId: String
-  }
-
-  type Query {
-    users: [User]
-    posts: [Post]
-  }
-`;
-
-const resolvers = {
-  Query: {
-    users: () => [{ id: 1, username: "John Doe", email: "jhon-doe@email.com" }],
-    posts: () => [
-      { id: 1, title: "Hello World", content: "Hello World!", userId: 1 },
-    ],
-  },
-};
+import { traceSchema } from "@graphql-debugger/trace-schema";
+import { ProxyAdapter } from "@graphql-debugger/adapter-proxy";
+import { typeDefs } from "./type-defs";
+import { resolvers } from "./resolvers";
 
 const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
 });
 
+const adapter = new ProxyAdapter();
+const tracedSchema = traceSchema({
+  schema,
+  adapter,
+});
+
 async function main() {
   const result = await graphql({
-    schema,
+    schema: tracedSchema,
     source: /* GraphQL */ `
       query {
         users {
@@ -53,7 +34,7 @@ async function main() {
     },
   });
 
-  console.log(result);
+  console.log(JSON.stringify(result, null, 2));
 }
 
 main();
