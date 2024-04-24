@@ -46,11 +46,6 @@ async function main() {
           username
           email
         }
-        posts {
-          id
-          title
-          content
-        }
       }
     `,
     contextValue: {
