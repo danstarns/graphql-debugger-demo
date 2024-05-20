@@ -9,8 +9,10 @@ import {
 } from "@graphql-debugger/trace-schema";
 import { ProxyAdapter } from "@graphql-debugger/adapter-proxy";
 import { PrismaInstrumentation } from "@prisma/instrumentation";
+import { PrismaClient } from "@prisma/client";
 
 const sleep = promisify(setTimeout);
+const prisma = new PrismaClient();
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -25,6 +27,15 @@ const tracedSchema = traceSchema({
 });
 
 async function main() {
+  await sleep(2000); // wait for schema to be inital exported to debugger, for demo only
+
+  await prisma.user.create({
+    data: {
+      username: "test",
+      email: `email-${Math.random()}@example.com`,
+    },
+  });
+
   const result = await graphql({
     schema: tracedSchema.schema,
     source: /* GraphQL */ `
@@ -43,10 +54,6 @@ async function main() {
       }),
     },
   });
-
-  console.log(JSON.stringify(result, null, 2));
-
-  await sleep(1000);
 }
 
 main();
