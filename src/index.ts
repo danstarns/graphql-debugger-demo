@@ -1,12 +1,14 @@
-import { GraphQLDebuggerContext } from "@graphql-debugger/trace-schema";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { graphql } from "graphql";
-import { traceSchema } from "@graphql-debugger/trace-schema";
-import { ProxyAdapter } from "@graphql-debugger/adapter-proxy";
 import { typeDefs } from "./type-defs";
 import { resolvers } from "./resolvers";
-import { PrismaInstrumentation } from "@prisma/instrumentation";
 import { promisify } from "util";
+import {
+  GraphQLDebuggerContext,
+  traceSchema,
+} from "@graphql-debugger/trace-schema";
+import { ProxyAdapter } from "@graphql-debugger/adapter-proxy";
+import { PrismaInstrumentation } from "@prisma/instrumentation";
 
 const sleep = promisify(setTimeout);
 
@@ -24,7 +26,7 @@ const tracedSchema = traceSchema({
 
 async function main() {
   const result = await graphql({
-    schema: tracedSchema,
+    schema: tracedSchema.schema,
     source: /* GraphQL */ `
       query {
         users {
@@ -35,7 +37,10 @@ async function main() {
       }
     `,
     contextValue: {
-      GraphQLDebuggerContext: new GraphQLDebuggerContext(),
+      GraphQLDebuggerContext: new GraphQLDebuggerContext({
+        schema: tracedSchema.schema,
+        schemaHash: tracedSchema.schemaHash,
+      }),
     },
   });
 
